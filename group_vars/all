@@ -1,0 +1,6 @@
+---
+node_ip: 172.28.128.3
+pod_network: 10.244.0.0/16
+master_server: centos8
+server_ntp: 0.mg.pool.ntp.org
+network_zone: internal
