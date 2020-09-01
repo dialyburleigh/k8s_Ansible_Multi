@@ -1,0 +1,47 @@
+---
+# tasks file for master
+
+- name: kubeadm reset 
+  command: kubeadm reset -f 
+  run_once: yes
+
+- name: Remove old/obsolete configurations
+  file:
+    path: /etc/kubernetes/
+    state: absent
+  ignore_errors: yes
+
+- name: Remove old/obsolete configurations
+  file:
+    path: /etc/cni/net.d
+    state: absent
+  ignore_errors: yes
+
+- name: Initialize the Kubernetes cluster using kubeadm
+  command: kubeadm init --apiserver-advertise-address="{{ node_ip }}"  --apiserver-cert-extra-sans="{{ node_ip }}"  --pod-network-cidr={{ pod_network }} --ignore-preflight-errors=cri --node-name="{{ master_server }}"
+  run_once: yes
+
+- name: create .kube directory
+  file:
+    path: $HOME/.kube
+    state: directory
+    mode: '0755'
+-
+  name: "copy admin.conf to user's kube config"
+  become: yes
+  copy:
+    src: /etc/kubernetes/admin.conf
+    dest: $HOME/.kube/config
+    remote_src: yes
+
+
+- name: Install flannel pod network
+  command: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+
+- name: Generate join command
+  command: kubeadm token create --print-join-command
+  register: join_command
+
+- name: Copy join command to local file
+  become: false
+  local_action: copy content="{{ join_command.stdout_lines[0] }}" dest="./join-command"

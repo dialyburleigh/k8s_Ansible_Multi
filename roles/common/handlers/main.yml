@@ -1,0 +1,43 @@
+---
+# handlers file for common
+- name: restart firewalld
+  systemd: 
+    name: firewalld 
+    state: reloaded
+
+- name: restart docker
+  systemd: 
+    name: docker 
+    state: restarted
+    enabled: yes
+   
+
+- name: Restart service systemd firewalld 
+  systemd:
+    state: restarted
+    daemon_reload: yes
+    name: firewalld
+
+- name: Enabled  systemd kubelet 
+  systemd:
+    state: restarted
+    name: kubelet
+    daemon_reload: yes
+    enabled: yes 
+
+- name: Restart NTP                                                                                                                                                                     
+  systemd:                                                                                                                                                                                                  
+    name: ntpd                                                                                                                                                                                              
+    state: restarted                                                                                                                                                                                        
+  when: ansible_os_family == "RedHat"                                                                                                                                                                       
+                                                                                                                                                                                                            
+- name: Restart NTP                                                                                                                                                                     
+  systemd:                                                                                                                                                                                                  
+    name: ntp                                                                                                                                                                                               
+    state: restarted                                                                                                                                                                                        
+  when: ansible_os_family == "Debian" 
+
+- name: Restart NTP [RHEL 8]                                                                                                                                                                   
+  systemd:                                                                                                                                                                                                  
+    name: chronyd                                                                                                                                                                                               
+    state: restarted                                                                                                                                                                                        

@@ -1,0 +1,6 @@
+---
+# defaults file for deploy
+
+ports:
+- 30080/tcp
+- 80/tcp

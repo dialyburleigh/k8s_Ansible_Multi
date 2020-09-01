@@ -1,0 +1,17 @@
+---
+# tasks file for common
+
+- name: prerequis - install - firewalld - ntp
+  include: prerequis.yml
+  
+- name: Base repo centos [RHEL]
+  include: baseCentos.yml
+  when: ansible_facts['os_family']  == 'RedHat'
+
+- name: Install Docker kubeadm  [RHEL]
+  include: install_red.yml
+  when: ansible_facts['os_family'] == 'RedHat' 
+
+- name: Install Docker kubeadm [DEB]
+  include: install_deb.yml
+  when: ansible_facts['os_family'] == "Debian" or ansible_facts['os_family'] == "Ubuntu" 

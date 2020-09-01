@@ -1,0 +1,54 @@
+- name: Install prerequis docker [RHEL]
+  yum: 
+    name: "{{ item.name }}"
+    state: present
+    update_cache: yes
+  with_items: "{{ requis_docker | default([]) }}"
+
+- name: check if docker is install
+  command: which containerd
+  register: containerd_install
+  when: ansible_facts['os_family'] == 'RedHat' and ansible_facts['distribution_major_version'] == "8"
+  failed_when: containerd_install.rc != 1 and containerd_install.rc != 0
+  ignore_errors: no
+
+- name: install containerd.io package centos8 [RHEL]
+  command: yum install -y https://download.docker.com/linux/centos/7/x86_64/stable/Packages/containerd.io-1.2.6-3.3.el7.x86_64.rpm
+  when: ansible_facts['os_family'] == 'RedHat' and ansible_facts['distribution_major_version'] == "8" and containerd_install.rc == 1
+  
+- name: Install Docker [RHEL]
+  yum: 
+    name: "{{ item.name }}"
+    state: present
+    update_cache: yes
+  with_items: "{{ docker_packages | default([]) }}"
+  when: ansible_facts['os_family'] == 'RedHat' 
+  notify: restart docker
+
+- name: Start Docker service RHEL
+  service:
+    name: docker
+    state: started
+    enabled: yes
+
+- name: Ensure group "docker" exists [RHEL]
+  group:
+    name: docker
+    state: present
+ 
+- name: Add vagrant user to docker group [RHEL]
+  user:
+    name: vagrant
+    group: docker
+  notify: restart docker
+
+- name: Install Kubernetes binaries [RHEL]
+  yum: 
+    name: "{{ item.name }}"
+    state: present
+    update_cache: no
+  with_items: "{{ k8s_packages | default([]) }}"
+  notify: Enabled  systemd kubelet 
+
+- name: Auto-complétion avec Kubectl
+  command: echo "source <(kubectl completion bash)" >> ~/.bashrc

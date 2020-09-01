@@ -1,0 +1,36 @@
+---
+# tasks file for deploy
+
+- name: copy deployement nginx
+  copy: 
+    src: run-my-nginx.yml
+    dest: /tmp/run-my-nginx.yml
+    mode: '0755'
+
+- name: copy service nginx
+  copy: 
+    src: nginx-svc.yml
+    dest: /tmp/nginx-svc.yml
+    mode: '0755'
+
+- name: Allow Network Ports in Firewalld [RHEL]
+  firewalld:
+    port: "{{ item }}"
+    state: enabled
+    # zone: "{{ network_zone }}"
+    permanent: yes
+  with_items: "{{ ports }}"
+  when: ansible_facts['os_family'] == 'RedHat'
+  notify: restart firewalld
+
+# - name: delete deployement nginx
+#   command: kubectl delete -f /tmp/run-my-nginx.yml
+
+# - name: delete service nginx
+#   command: kubectl delete -f /tmp/nginx-svc.yml
+
+- name: Install deployement nginx
+  command: kubectl apply -f /tmp/run-my-nginx.yml
+
+- name: Install service nginx
+  command: kubectl apply -f /tmp/nginx-svc.yml

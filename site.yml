@@ -1,0 +1,72 @@
+- name: Install clusters kubernetes Base
+  hosts: all
+  remote_user: vagrant
+  gather_facts: no
+  #strategy: free 
+  become: yes
+
+  pre_tasks:
+    - name: Collect only facts returned by network
+      setup:
+        gather_subset:
+          - 'os_family'
+          - 'distribution_major_version'
+          - 'network'
+
+  roles:
+   - role: common
+
+- name: Install clusters kubernetes Master
+  hosts: master
+  remote_user: vagrant
+  gather_facts: no
+  #strategy: free 
+  become: yes
+
+  pre_tasks:
+    - name: Collect only facts returned by network
+      setup:
+        gather_subset:
+          - 'os_family'
+          - 'distribution_major_version'
+          - 'network'
+  
+  roles:
+   - role: master
+
+- name: Install clusters kubernetes workers
+  hosts: workers
+  remote_user: vagrant
+  gather_facts: no
+  #strategy: free 
+  become: yes
+
+  pre_tasks:
+    - name: Collect only facts returned by network
+      setup:
+        gather_subset:
+          - 'os_family'
+          - 'distribution_major_version'
+          - 'network'
+  
+  roles:
+    - role: worker
+ 
+- name: Deploy appli
+  hosts: master
+  remote_user: vagrant
+  gather_facts: no
+  #strategy: free 
+  become: yes
+
+  pre_tasks:
+    - name: Collect only facts returned by network
+      setup:
+        gather_subset:
+          - 'os_family'
+          - 'distribution_major_version'
+          - 'network'
+  
+  roles:
+   - role: deploy
+  

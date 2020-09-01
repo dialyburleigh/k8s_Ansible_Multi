@@ -1,0 +1,6 @@
+---
+# handlers file for deploy
+- name: restart firewalld
+  systemd: 
+    name: firewalld 
+    state: reloaded

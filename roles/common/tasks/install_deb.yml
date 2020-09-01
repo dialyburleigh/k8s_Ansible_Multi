@@ -1,0 +1,63 @@
+
+- name: Create the GPG key for kubernetes/Docker Deb
+  copy: 
+    src: "{{ item.file }}"
+    dest: /tmp/{{ item.file }}
+    owner: root
+    group: root
+    mode: '0755'
+  with_items: "{{ gpg_keys | default([]) }}"
+
+- name: Add new repositories keys Deb
+  apt_key:
+    file: /tmp/{{ item.file }}
+    state: present
+  with_items: "{{ gpg_keys | default([]) }}"
+  become: yes
+
+- name: Add new apt repositories Deb
+  apt_repository:
+    repo: '{{item.repo}}'
+    state: present
+  with_items: "{{ repositories | default([]) }}"
+
+- name: Install packages that allow apt to be used over HTTPS Deb
+  apt: 
+    name: '{{ item.name }}'
+    state: present
+    update_cache: yes
+  with_items: "{{ https_packages | default([]) }}"
+
+- name: Install docker deb
+  apt: 
+    name: "{{ item.name }}"
+    state: present
+    update_cache: yes
+  with_items: "{{ docker_packages | default([]) }}"
+  notify: restart Docker
+
+
+- name: Ensure group "docker" exists
+  group:
+    name: docker
+    state: present
+  
+  
+- name: Add vagrant user to docker group
+  user:
+    name: vagrant
+    group: docker
+    append: yes
+
+
+- name: Install Kubernetes binaries
+  apt: 
+    name: "{{ item.name }}"
+    state: present
+    update_cache: yes
+  with_items: "{{ k8s_packages | default([]) }}"
+  notify: Enabled systemd kubelet
+
+
+- name: Auto-complétion avec Kubectl
+  command: echo "source <(kubectl completion bash)" >> ~/.bashrc

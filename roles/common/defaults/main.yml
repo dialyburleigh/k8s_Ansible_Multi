@@ -1,0 +1,59 @@
+---
+
+gpg_keys:
+- file: apt-key-kub.gpg
+- file: gpg_deb_docker
+
+repositories:
+- repo: "deb [arch=amd64] https://download.docker.com/linux/debian {{ansible_distribution_release}} stable"
+- repo: "deb https://apt.kubernetes.io/ kubernetes-xenial main"
+- repo: "deb http://mirror.malagasy.com/debian/ {{ansible_distribution_release}} main contrib "
+
+https_packages:
+- name: apt-transport-https
+- name: curl
+- name: ca-certificates
+- name: gnupg-agent
+- name: software-properties-common
+- name: python-apt
+
+
+docker_packages:
+- name: docker-ce
+- name: docker-ce-cli 
+
+
+k8s_packages:
+- name: kubeadm 
+- name: kubelet 
+- name: kubectl
+- name: kubernetes-cni
+
+ports:
+- 5443/tcp
+- 2379-2380/tcp
+- 10250/tcp
+- 10251/tcp
+- 10252/tcp
+- 10053/tcp
+- 10053/udp
+- 10255/tcp
+- 30000-32767/tcp
+- 8080/tcp
+- 8082/tcp
+- 8472/udp
+- 8285/udp
+- 9898/tcp
+- 9100/tcp
+- 443/tcp
+- 53/tcp
+- 53/udp
+- 4194/tcp
+- 10254/tcp
+- 6443/tcp
+
+
+requis_docker:
+- name: yum-utils 
+- name: device-mapper-persistent-data 
+- name: lvm2

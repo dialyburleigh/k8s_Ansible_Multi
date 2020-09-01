@@ -1,0 +1,153 @@
+- name: change resolv
+  copy: 
+    src: resolv.conf
+    dest: /etc/resolv.conf
+    owner: root
+    group: root
+    mode: '0755'
+  when: ansible_facts['os_family'] == 'Debian'
+
+- name: disable firewall
+  systemd:
+    name: firewalld
+    state: restarted
+    daemon_reload: yes
+    enabled: yes
+  when: ansible_facts['os_family'] == 'RedHat'
+
+- name: Allow Network Ports in Firewalld [RHEL]
+  firewalld:
+    port: "{{ item }}"
+    state: enabled
+    # zone: "{{ network_zone }}"
+    permanent: yes
+  with_items: "{{ ports }}"
+  when: ansible_facts['os_family'] == 'RedHat'
+
+- name: Enable IP masquerading
+  shell: "firewall-cmd --permanent --add-masquerade"
+  # shell: "firewall-cmd --permanent --zone={{ network_zone }} --add-masquerade"
+  when: ansible_facts['os_family'] == 'RedHat'
+  notify: restart firewalld
+
+- name: modprobe br_netfilter
+  modprobe:
+    name: br_netfilter
+    state: present
+
+- name: Disable SELinux [RHEL]
+  selinux:
+     policy: targeted
+     state: permissive
+  when: ansible_facts['os_family'] == 'RedHat'
+
+- name: Fix net.bridge.bridge-nf-call-iptables issue (1/2)
+  copy:
+   content: |
+    net.bridge.bridge-nf-call-ip6tables = 1
+    net.bridge.bridge-nf-call-iptables = 1
+   dest: /etc/sysctl.d/k8s.conf
+  register: fix
+
+- name: Fix net.bridge.bridge-nf-call-iptables issue (2/2)
+  command: sysctl --system
+  when: fix.changed  
+
+- name: ensure net.bridge.bridge-nf-call-ip6tables is set to 1
+  sysctl:
+    name: net.bridge.bridge-nf-call-ip6tables
+    value: 1
+    state: present
+
+- name: ensure net.bridge.bridge-nf-call-iptables is set to 1
+  sysctl:
+    name: net.bridge.bridge-nf-call-iptables
+    value: 1
+    state: present
+
+- name: Remove swapfile from /etc/fstab
+  mount:
+   name: "{{ item }}"
+   fstype: swap
+   state: absent
+  with_items:
+   - swap
+   - none
+
+- name: Disable swap
+  shell: "swapoff -a"
+
+
+- name: Add IP address of all hosts to all hosts
+  lineinfile:
+    dest: /etc/hosts
+    regexp: '.*{{ item }}$'
+    line: "{{ hostvars[item].ansible_host }} {{ hostvars[item]['ansible_hostname'] }} "
+    state: present
+  when: hostvars[item].ansible_host is defined
+  with_items: "{{ groups.all }}"
+
+- name: set timezone
+  shell: timedatectl set-timezone Indian/Antananarivo
+
+- name: Install NTP [RHEL -7]
+  yum: 
+    name: ntp 
+    state: present 
+    update_cache: yes
+  when: ansible_facts['os_family'] == 'RedHat' and ansible_facts['distribution_major_version'] == "7"
+
+- name: Install NTP [RHEL -8]
+  dnf: 
+    name: chrony 
+    state: present 
+    update_cache: no
+  when: ansible_facts['os_family'] == 'RedHat' and ansible_facts['distribution_major_version'] == "8"
+
+- name: Install NTP [DEB]
+  apt: 
+    name: ntp 
+    state: present 
+  when: ansible_facts['os_family'] == 'Debian'
+
+- name: Start and Enable NTP service in RedHat OS                                                                                                                         
+  systemd:                                                                                                                                                                
+    name: chronyd                                                                                                                                                            
+    state: started                                                                                                                                                        
+    enabled: yes                                                                                                                                                          
+  when: ansible_os_family == "RedHat" and ansible_facts['distribution_major_version'] == "8"   
+  
+- name: Start and Enable NTP service in RedHat OS                                                                                                                         
+  systemd:                                                                                                                                                                
+    name: ntpd                                                                                                                                                            
+    state: started                                                                                                                                                        
+    enabled: yes                                                                                                                                                          
+  when: ansible_os_family == "RedHat" and ansible_facts['distribution_major_version'] == "7"   
+                                                                                                                                                                          
+- name: Start and Enable NTP service in Debian OS                                                                                                                         
+  systemd:                                                                                                                                                                
+    name: ntp                                                                                                                                                             
+    state: started                                                                                                                                                        
+    enabled: yes                                                                                                                                                          
+  when: ansible_os_family == "Debian" 
+
+- name: Copy over the NTP configuration
+  template: 
+    src: ntp.conf
+    dest: /etc/ntp.conf
+    owner: root
+    group: root
+    mode: '0755'
+  when: ansible_os_family == "Debian" or (ansible_os_family == "RedHat" and ansible_facts['distribution_major_version'] == "7") 
+  notify: Restart NTP
+
+
+- name: Copy over the NTP configuration [RHEL 8]
+  template: 
+    src: chrony.conf
+    dest: /etc/chrony.conf
+    owner: root
+    group: root
+    mode: '0755'
+  when: (ansible_os_family == "RedHat" and ansible_facts['distribution_major_version'] == "8") 
+  notify: Restart NTP [RHEL 8]
