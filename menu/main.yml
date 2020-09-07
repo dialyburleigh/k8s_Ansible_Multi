@@ -25,3 +25,5 @@ galaxy_info:
    - master
    - worker
    - deploy
+   
+dependencies: []
