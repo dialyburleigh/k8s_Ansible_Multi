@@ -21,9 +21,8 @@ galaxy_info:
       - 7
       - 8
   galaxy_tags: 
-   - system
-   - devops
-   - docker
-   - kubernetes
+   - common
+   - master
+   - worker
+   - deploy
    
-dependencies: [common,master,worker,deploy]
