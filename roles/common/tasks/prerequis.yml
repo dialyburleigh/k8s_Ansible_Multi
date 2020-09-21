@@ -5,7 +5,7 @@
     owner: root
     group: root
     mode: '0755'
-  when: ansible_facts['os_family'] == 'Debian'
+  when: ansible_facts['os_family'] == 'Debian' and ansible_facts['virtualization_type'] == 'virtualbox'
 
 - name: disable firewall
   systemd:
@@ -56,13 +56,13 @@
 - name: ensure net.bridge.bridge-nf-call-ip6tables is set to 1
   sysctl:
     name: net.bridge.bridge-nf-call-ip6tables
-    value: 1
+    value: '1'
     state: present
 
 - name: ensure net.bridge.bridge-nf-call-iptables is set to 1
   sysctl:
     name: net.bridge.bridge-nf-call-iptables
-    value: 1
+    value: '1'
     state: present
 
 - name: Remove swapfile from /etc/fstab
