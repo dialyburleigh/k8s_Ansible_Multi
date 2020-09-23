@@ -21,6 +21,7 @@ https_packages:
 docker_packages:
 - name: docker-ce
 - name: docker-ce-cli 
+#- name: containerd.io
 
 
 k8s_packages:
@@ -57,3 +58,5 @@ requis_docker:
 - name: yum-utils 
 - name: device-mapper-persistent-data 
 - name: lvm2
+- name: dnf-utils
+

@@ -32,6 +32,7 @@
   copy:
     src: /etc/kubernetes/admin.conf
     dest: $HOME/.kube/config
+    mode: '0666'
     remote_src: yes
 
 
@@ -45,3 +46,4 @@
 - name: Copy join command to local file
   become: false
   local_action: copy content="{{ join_command.stdout_lines[0] }}" dest="./join-command"
+

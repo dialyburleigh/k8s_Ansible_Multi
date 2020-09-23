@@ -8,21 +8,39 @@
 - name: check if docker is install
   command: which containerd
   register: containerd_install
-  when: ansible_facts['os_family'] == 'RedHat' and ansible_facts['distribution_major_version'] == "8"
+  when: ansible_facts['distribution'] == 'CentOS' and ansible_facts['distribution_major_version'] == "8"
   failed_when: containerd_install.rc != 1 and containerd_install.rc != 0
   ignore_errors: no
 
 - name: install containerd.io package centos8 [RHEL]
-  command: yum install -y https://download.docker.com/linux/centos/7/x86_64/stable/Packages/containerd.io-1.2.6-3.3.el7.x86_64.rpm
-  when: ansible_facts['os_family'] == 'RedHat' and ansible_facts['distribution_major_version'] == "8" and containerd_install.rc == 1
-  
+  #command: dnf install -y docker-ce --nobest
+  command: yum install -y https://download.docker.com/linux/centos/7/x86_64/stable/Packages/containerd.io-1.3.7-3.1.el7.x86_64.rpm
+  when: ansible_facts['distribution'] == 'CentOS' and ansible_facts['distribution_major_version'] == "8" and containerd_install.rc == 1
+
+# - name: Install Docker  containerd.io [RHEL]
+#   yum: 
+#     name: containerd.io
+#     state: latest
+- name: check if docker is install [RHEL8]
+  command: which docker
+  register: docker_install
+  when: ansible_facts['distribution'] == 'RedHat' 
+  # and ansible_facts['distribution_major_version'] == "8"
+  failed_when: docker_install.rc != 1 and docker_install.rc != 0
+  ignore_errors: no
+
+- name: Install Docker [RHEL]
+  command: dnf install -y docker-ce docker-ce-cli --nobest
+  when: ansible_facts['distribution'] == 'RedHat' and ansible_facts['distribution_major_version'] == "8" and docker_install.rc == 1
+
 - name: Install Docker [RHEL]
   yum: 
     name: "{{ item.name }}"
     state: present
     update_cache: yes
   with_items: "{{ docker_packages | default([]) }}"
-  when: ansible_facts['os_family'] == 'RedHat' 
+  when: ansible_facts['distribution'] == 'CentOS' 
+  # and ansible_facts['distribution_major_version'] != "8"
   notify: restart docker
 
 - name: Start Docker service RHEL
