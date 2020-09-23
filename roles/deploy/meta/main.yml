@@ -17,10 +17,6 @@ galaxy_info:
      versions:
       - 7
       - 8
-   - name: Centos 
-     versions:
-      - 7
-      - 8
   galaxy_tags: 
    - system
    - devops

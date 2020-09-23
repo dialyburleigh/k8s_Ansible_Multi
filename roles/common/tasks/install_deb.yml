@@ -1,4 +1,4 @@
-
+---
 - name: Create the GPG key for kubernetes/Docker Deb
   copy: 
     src: "{{ item.file }}"

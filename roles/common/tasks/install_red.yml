@@ -1,3 +1,4 @@
+---
 - name: Install prerequis docker [RHEL]
   yum: 
     name: "{{ item.name }}"
