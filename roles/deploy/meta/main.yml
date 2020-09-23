@@ -23,4 +23,7 @@ galaxy_info:
    - docker
    - kubernetes
    
-dependencies: [common,master,worker]
+dependencies: 
+   - common
+   - master
+   - worker

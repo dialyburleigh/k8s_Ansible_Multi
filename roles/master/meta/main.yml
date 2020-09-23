@@ -23,4 +23,5 @@ galaxy_info:
    - docker
    - kubernetes
    
-dependencies: [common]
+dependencies: 
+   - common

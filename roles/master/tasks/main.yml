@@ -26,15 +26,14 @@
     path: $HOME/.kube
     state: directory
     mode: '0755'
--
-  name: "copy admin.conf to user's kube config"
+    
+- name: "copy admin.conf to user's kube config"
   become: yes
   copy:
     src: /etc/kubernetes/admin.conf
     dest: $HOME/.kube/config
     mode: '0666'
     remote_src: yes
-
 
 - name: Install flannel pod network
   command: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
@@ -46,4 +45,3 @@
 - name: Copy join command to local file
   become: false
   local_action: copy content="{{ join_command.stdout_lines[0] }}" dest="./join-command"
-

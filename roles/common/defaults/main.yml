@@ -53,10 +53,8 @@ ports:
 - 10254/tcp
 - 6443/tcp
 
-
 requis_docker:
 - name: yum-utils 
 - name: device-mapper-persistent-data 
 - name: lvm2
 - name: dnf-utils
-
